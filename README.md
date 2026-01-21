@@ -3,157 +3,162 @@
 **Cours** : 243-413-SH — Introduction aux objets connectés
 **Semaine** : 1
 **Type** : Formative (non notée)
+**Date limite** : Fin de la séance de laboratoire
 
 ---
 
-## 📋 Description
+## Objectif
 
-Ce formatif vérifie que l'étudiant est capable de :
-1. ✅ Se connecter au Raspberry Pi via SSH (depuis Windows)
+Ce formatif vise à vérifier que vous êtes capable de :
+1. ✅ Utiliser SSH pour vous connecter au Raspberry Pi (depuis Windows)
 2. ✅ Installer les bibliothèques Python nécessaires (BMP280)
 3. ✅ Détecter un capteur I²C avec `i2cdetect`
 4. ✅ Lire un capteur de température, pression et altitude (BMP280)
 
 ---
 
-## 📁 Structure du dépôt
+## Instructions
 
-```
-semaine-1-F1/
-├── modele/                    # Modèle pour GitHub Classroom
-│   ├── README.md             # Instructions pour les étudiants
-│   ├── requirements.txt      # Dépendances Python
-│   ├── capteur.py            # Script à compléter par l'étudiant
-│   ├── correction.py         # Script de correction détaillée
-│   ├── tests/                # Tests automatisés
-│   │   ├── conftest.py       # Fixtures et configuration
-│   │   └── test_formatif_f1.py # Tests pytest
-│   └── .github/
-│       └── workflows/
-│           └── grade.yml     # Workflow GitHub Actions
-├── devoir.yml                # Métadonnées du devoir
-└── README.md                 # Ce fichier
+### Étape 1 : Connexion SSH (depuis Windows PowerShell)
+
+Connectez-vous au Raspberry Pi via SSH depuis PowerShell :
+
+```powershell
+ssh jdupont@192.168.1.xxx
 ```
 
----
+Remplacez `jdupont` par votre nom d'utilisateur créé dans Raspberry Pi Imager et `192.168.1.xxx` par l'adresse IP fournie en classe.
 
-## 🚀 Déploiement
+**Pour trouver l'adresse IP** :
+```powershell
+arp -a | findstr "b8-27-eb"
+```
 
-### 1. Créer le dépôt modèle
+### Étape 2 : Créer votre espace de travail
 
 ```bash
-cd modele/
-git init
-git add .
-git commit -m "Initial commit - Formatif F1"
+mkdir -p ~/iot-lab
+cd ~/iot-lab
 ```
 
-Créer le dépôt sur GitHub et pousser.
-
-### 2. Créer le devoir dans GitHub Classroom
-
-1. Aller sur [GitHub Classroom](https://classroom.github.com)
-2. Nouveau devoir → Créer à partir d'un dépôt existant
-3. Sélectionner le dépôt modèle créé
-4. Configuration:
-   - **Titre**: Formatif F1 — Introduction au Raspberry Pi et BMP280
-   - **Type**: Formative
-   - **Deadline**: Fin de la séance de laboratoire
-   - **Invitation**: Lien ou liste d'étudiants
-
-### 3. Publier aux étudiants
-
-Partager le lien d'invitation avec les étudiants.
-
----
-
-## 🧪 Tests automatisés
-
-Les tests vérifient :
-
-| Test | Vérification | Points | Indicateur |
-|------|-------------|--------|------------|
-| `test_requirements_present` | requirements.txt complet (BMP280) | 25% | IND-00SX-E |
-| `test_import_board` | Module board importable | 15% | IND-00SX-E |
-| `test_import_bmp280` | Module adafruit_bmp importable | 10% | IND-00SX-E |
-| `test_script_exists` | Script capteur.py présent | 15% | IND-00SX-D |
-| `test_script_has_required_imports` | Imports corrects | 15% | IND-00SX-D |
-| `test_script_creates_sensor` | Objet capteur BMP280 créé | 15% | IND-00SX-D |
-| `test_script_executes` | Script s'exécute sans erreur | 20% | IND-00SX-D |
-| `test_script_output_format` | Format de sortie correct (T°, P, Alt) | 20% | IND-00SX-D |
-
----
-
-## 📊 Correction
-
-### Correction automatique
-
-GitHub Actions exécute les tests automatiquement quand l'étudiant pousse son code.
-
-### Correction manuelle (optionnelle)
+### Étape 3 : Installer les dépendances
 
 ```bash
-python3 correction.py ../etudiants/du-pierre-julien-f1
+pip3 install --upgrade pip
+pip3 install adafruit-circuitpython-bmp adafruit-blinka
 ```
 
-Pour tous les étudiants d'un coup :
+### Étape 4 : Vérifier le capteur BMP280
 
 ```bash
-python3 correction.py --batch ../etudiants/ --export resultats_f1.xlsx
+sudo i2cdetect -y 1
+```
+
+Vous devriez voir `77` à l'adresse `0x77` (capteur BMP280).
+
+⚠️ **IMPORTANT** : Le BMP280 fonctionne UNIQUEMENT en 3.3V ! Si VIN est connecté au 5V, le capteur ne répondra pas.
+
+### Étape 5 : Créer le script de lecture
+
+Créez le fichier `capteur.py` dans `~/iot-lab/` avec le contenu suivant :
+
+```python
+#!/usr/bin/env python3
+"""
+Lecture du capteur BMP280 - Température, Pression et Altitude
+Formatif F1 - Semaine 1
+"""
+
+import board
+import adafruit_bmp
+
+# Création de l'objet capteur
+i2c = board.I2C()
+sensor = adafruit_bmp.BMP280_I2C(i2c)
+
+# Lecture des valeurs
+temperature = sensor.temperature
+pression = sensor.pressure
+altitude = sensor.altitude
+
+# Affichage
+print(f"Température : {temperature:.2f} °C")
+print(f"Pression : {pression:.2f} hPa")
+print(f"Altitude : {altitude:.1f} m")
+```
+
+### Étape 6 : Exécuter et valider
+
+```bash
+python3 capteur.py
+```
+
+Prenez une capture d'écran des résultats !
+
+---
+
+## Validation automatique
+
+Pour recevoir une rétroaction automatique :
+
+1. Poussez votre code sur GitHub (ce dépôt)
+2. Les tests s'exécuteront automatiquement via GitHub Actions
+3. Consultez l'onglet "Actions" pour voir les résultats
+4. Corrigez selon la rétroaction fournie
+
+### Tests automatisés
+
+Les tests vérifient que :
+
+| Test | Vérification | Points |
+|------|-------------|--------|
+| `test_requirements_present` | Fichier requirements.txt complet | 25% |
+| `test_import_board` | Module board importable | 15% |
+| `test_import_bmp280` | Module adafruit_bmp importable | 10% |
+| `test_script_exists` | Script capteur.py présent | 15% |
+| `test_script_has_required_imports` | Imports corrects | 15% |
+| `test_script_creates_sensor` | Objet capteur BMP280 créé | 15% |
+| `test_script_syntax_valid` | Syntaxe Python valide | 10% |
+| `test_script_prints_output` | Contient des print() pour sortie | 15% |
+| `test_script_uses_sensor_methods` | Utilise .temperature, .pressure, .altitude | 15% |
+
+**⚠️ IMPORTANT**: Les tests GitHub Actions vérifient uniquement le **code** (syntaxe, structure, imports).
+Pour valider que le capteur fonctionne **réellement** sur le Raspberry Pi, exécutez :
+
+```bash
+bash validate_pi.sh
 ```
 
 ---
 
-## 💡 Rétroaction
+## Livrables
 
-La rétroaction est générée automatiquement :
+Dans ce dépôt, vous devez avoir :
 
-| Niveau | Message |
-|--------|---------|
-| **100%** | 🎉 Excellent! L'environnement est parfaitement configuré et le script est fonctionnel |
-| **85%** | ✅ Très bon! Quelques améliorations mineures possibles |
-| **60%** | 👍 Les bases sont en place. Peut être amélioré |
-| **35%** | ⚠️ Partiellement correct. Vérifiez les points manquants |
-| **0%** | ❌ Non fonctionnel. Consultez le guide de dépannage |
+- [ ] `requirements.txt` — Liste des dépendances Python
+- [ ] `capteur.py` — Votre script de lecture du capteur BMP280
+- [ ] `captures/` — Dossier avec vos captures d'écran (optionnel pour l'auto-correction)
 
 ---
 
-## 📚 Ressources associées
+## Ressources
 
 - [Guide de l'étudiant](../../deliverables/activites/semaine-1/labo/guide-étudiant.md)
 - [Guide de dépannage](../../deliverables/activites/semaine-1/labo/guide-depannage.md)
 - [Contenu d'apprentissage](../../deliverables/activites/semaine-1/theory/contenu-apprentissage.md)
-- [Résultats attendus](../../deliverables/activites/semaine-1/labo/resultats-attendus.md)
 
 ---
 
-## 📈 Indicateurs évalués
+## Rétroaction
 
-### IND-00SX-E — Exécution (Environnement & Déploiement)
+Après avoir poussé votre code :
 
-**Critères de performance**: 2.1, 2.2, 2.3, 2.4, 2.6
+1. Allez dans l'onglet **Actions** de ce dépôt
+2. Cliquez sur le workflow le plus récent
+3. Lisez la rétroaction dans les logs de tests
 
-**Niveaux de performance**:
-- **0%** : L'environnement ne permet pas l'exécution
-- **35%** : L'environnement fonctionne partiellement avec erreurs
-- **60%** : L'environnement permet l'exécution fonctionnelle
-- **85%** : L'environnement est complet et stable
-- **100%** : L'environnement est optimisé et reproductible
-
-### IND-00SX-D — Conception (Programmation)
-
-**Critères de performance**: 4.1, 4.3
-
-**Niveaux de performance**:
-- **0%** : La logique applicative ne permet pas l'acquisition
-- **35%** : La logique est partiellement fonctionnelle
-- **60%** : La logique permet l'acquisition des données essentielles
-- **85%** : La logique est entièrement fonctionnelle
-- **100%** : La logique est fonctionnelle et optimisée
+**Note** : Ce formatif n'est pas noté. Son but est de vous donner une rétroaction rapide sur votre compréhension des concepts de base.
 
 ---
 
-**Version** : 2.0
-**Date de création** : 2026-01-16
-**Dernière mise à jour** : 2026-01-19 (BMP280 + Windows)
-**Auteur** : Agent pédagogique
+Bonne chance ! 🚀
