@@ -7,9 +7,18 @@
 import board
 import adafruit_bmp280
 
-i2c = board.I2C()
-sensor = adafruit_bmp280.Adafruit_BMP280_I2C(i2c, address=0x77)
+def main():
 
-print(f"Température: {sensor.temperature:.1f} °C")
-print(f"Pression: {sensor.pressure:.1f} hPa")
-print(f"Altitude: {sensor.altitude:.1f} m")
+    try:
+        i2c = board.I2C()
+        sensor = adafruit_bmp280.Adafruit_BMP280_I2C(i2c, address=0x77)
+
+        print(f"Température: {sensor.temperature:.1f} °C")
+        print(f"Pression: {sensor.pressure:.1f} hPa")
+        print(f"Altitude: {sensor.altitude:.1f} m")
+
+    except Exception as e:
+        print("Erreur lecture capteur")
+
+if __name__ == "__main__":
+    main()
